@@ -8,8 +8,8 @@
 
 Pod::Spec.new do |s|
   s.name             = 'NetworkLayer'
-  s.version          = '0.1.0'
-  s.summary          = 'A short description of NetworkLayer.'
+  s.version          = '1.0.0'
+  s.summary          = 'Network For iOS . write by swift'
 
 # This description is used to generate tags and improve search results.
 #   * Think: What does it do? Why did you write it? What is the focus?
@@ -21,11 +21,11 @@ Pod::Spec.new do |s|
 TODO: Add long description of the pod here.
                        DESC
 
-  s.homepage         = 'https://github.com/ep_chengsun@aliyun.com/NetworkLayer'
+  s.homepage         = 'https://github.com/Gensun/NetworkLayer'
   # s.screenshots     = 'www.example.com/screenshots_1', 'www.example.com/screenshots_2'
   s.license          = { :type => 'MIT', :file => 'LICENSE' }
   s.author           = { 'ep_chengsun@aliyun.com' => 'suncheng@lookingedu.com' }
-  s.source           = { :git => 'https://github.com/ep_chengsun@aliyun.com/NetworkLayer.git', :tag => s.version.to_s }
+  s.source           = { :git => 'https://github.com/Gensun/NetworkLayer.git', :tag => s.version.to_s }
   # s.social_media_url = 'https://twitter.com/<TWITTER_USERNAME>'
 
   s.ios.deployment_target = '8.0'
