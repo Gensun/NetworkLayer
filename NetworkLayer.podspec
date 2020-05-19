@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'NetworkLayer'
-  s.version          = '1.0.0'
+  s.version          = '1.0.1'
   s.summary          = 'Network For iOS . write by swift'
 
 # This description is used to generate tags and improve search results.

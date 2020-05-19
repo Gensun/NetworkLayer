@@ -16,11 +16,15 @@ public enum HttpMethod: String {
     case post = "POST"
     case put = "PUT"
 }
+
 public enum HttpTask<T: Encodable> {
     case request
+    // post
     case requestWithParameters(bodyParameters: T?, queryParameters: Parameters?, pathParameters: [String]?)
+    // get
     case requestWithHeaders(headers: HttpHeaders?, queryParameters: Parameters?)
 }
+
 public protocol EndpointType: RouterCompletionDelegate {
     associatedtype ParameterType: Encodable
     var baseUrl: URL { get }
@@ -29,14 +33,17 @@ public protocol EndpointType: RouterCompletionDelegate {
     var task: HttpTask<ParameterType> { get }
     var headers: HttpHeaders? { get }
 }
+
 public extension EndpointType {
     var headers: HttpHeaders? {
         return nil
     }
+
     func didFinishWithSuccess() {
-        //nada
+        // nada
     }
+
     func didFinishWithError() {
-        //nada
+        // nada
     }
 }

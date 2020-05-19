@@ -25,10 +25,8 @@ public enum ResponseErrors: Int {
 }
 
 public protocol ErrorHandler {
-    var errorCode: Int? { get }
-    var errorDescription: String? { get }
-    var errorMetaData: ErrorMetaData? { get }
-    var lastUpdate: Double? { get }
+    var code: Int? { get }
+    var msg: String? { get }
 }
 
 public typealias ServiceResponseCodable = Codable & ErrorHandler

@@ -13,12 +13,14 @@ public enum NetworkError: String, Error {
     case encodingFailed = "Encoding failed"
     case invalidUrl = "Invalid url"
 }
+
 public protocol ParameterEncoder {
     func encode<T: Encodable>(urlRequest: inout URLRequest, with parameters: T) throws
     func encode(urlRequest: inout URLRequest, with urlParameters: Parameters) throws
 }
+
 public extension ParameterEncoder {
-    //Optional
+    // Optional
     func encode(urlRequest: inout URLRequest, with urlParameters: Parameters) throws {}
     func encode<T: Encodable>(urlRequest: inout URLRequest, with parameters: T) throws {}
 }

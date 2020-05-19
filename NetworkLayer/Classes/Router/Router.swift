@@ -58,6 +58,7 @@ public class Router<E: EndpointType, R: Codable>: NetworkRouter {
             task = session.routerDataTask(with: request, completionHandler: { data, response, error in
                 // Check status code first
                 if error == nil, let urlResponse = response as? HTTPURLResponse, data != nil {
+                    print("\(urlResponse)")
                     // If request succeded and there is a responses
                     if let statusError = self.checkStatusCode(with: urlResponse, error: error) {
                         self.handleFailureResponse(with: statusError, with: completion)
@@ -159,9 +160,17 @@ public class Router<E: EndpointType, R: Codable>: NetworkRouter {
     private func handleSuccessResponse(with data: Data, and urlResponse: URLResponse?,
                                        with completion: @escaping (R?, URLResponse?, NetworkResponseError?) -> Void) {
         delegate?.didFinishWithSuccess()
+        print("didFinishWithSuccess")
         do {
+            do {
+                let dict = try JSONSerialization.jsonObject(with: data, options: .mutableContainers) as AnyObject
+                print("\(urlResponse?.url) " + "\(dict)")
+            } catch let error as Error {
+                print("JSONSerialization" + "\(error)")
+            }
             completion(try JSONDecoder().decode(ResponseObject.self, from: data), urlResponse, nil)
         } catch let error {
+            print("parsingError" + "\(error)")
             completion(nil, urlResponse, NetworkResponseError.parsingError(error: error))
         }
     }
@@ -169,6 +178,7 @@ public class Router<E: EndpointType, R: Codable>: NetworkRouter {
     private func handleFailureResponse(with error: NetworkResponseError,
                                        with completion: @escaping (R?, URLResponse?, NetworkResponseError?) -> Void) {
         delegate?.didFinishWithError()
+        print("didFinishWithError" + "\(error)")
         completion(nil, nil, error)
     }
 

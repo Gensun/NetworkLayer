@@ -14,7 +14,8 @@ public struct URLParameterEncoder: ParameterEncoder {
             urlRequest.setValue(value, forHTTPHeaderField: key)
         }
     }
-     static func encode(urlRequest: inout URLRequest, with urlParameters: Parameters) throws {
+
+    static func encode(urlRequest: inout URLRequest, with urlParameters: Parameters) throws {
         guard let url = urlRequest.url else { throw NetworkError.invalidUrl }
         if var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: false), !urlParameters.isEmpty {
             urlComponents.queryItems = [URLQueryItem]()
@@ -27,7 +28,7 @@ public struct URLParameterEncoder: ParameterEncoder {
                 }
                 let queryItem = URLQueryItem(name: key,
                                              value:
-                    "\(value)".addingPercentEncoding(withAllowedCharacters: .urlHostAllowed))
+                                             "\(value)".addingPercentEncoding(withAllowedCharacters: .urlHostAllowed))
                 urlComponents.queryItems?.append(queryItem)
             }
             urlRequest.url = urlComponents.url
