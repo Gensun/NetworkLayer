@@ -32,16 +32,11 @@ public protocol NetworkRouter: class {
     func cancel()
 }
 
-public protocol RouterCompletionDelegate: class {
-    func didFinishWithSuccess()
-    func didFinishWithError()
-}
-
 public class Router<E: EndpointType, R: Codable>: NetworkRouter {
     public typealias EndPoint = E
     public typealias ResponseObject = R
+    public var timeoutInterval: TimeInterval = 30
     private var task: URLSessionDataTaskProtocol?
-    private weak var delegate: RouterCompletionDelegate?
     private let session: URLSessionProtocol
     public convenience init() {
         self.init(session: URLSession.shared)
@@ -78,7 +73,7 @@ public class Router<E: EndpointType, R: Codable>: NetworkRouter {
     private func buildRequest(from route: E) throws -> URLRequest {
         var request = URLRequest(url: route.baseUrl.appendingPathComponent(route.path),
                                  cachePolicy: .reloadIgnoringLocalAndRemoteCacheData,
-                                 timeoutInterval: 60.0)
+                                 timeoutInterval: timeoutInterval)
         request.httpMethod = route.httpMethod.rawValue
         switch route.task {
         case .request: break
@@ -159,25 +154,34 @@ public class Router<E: EndpointType, R: Codable>: NetworkRouter {
 
     private func handleSuccessResponse(with data: Data, and urlResponse: URLResponse?,
                                        with completion: @escaping (R?, URLResponse?, NetworkResponseError?) -> Void) {
-        delegate?.didFinishWithSuccess()
+        
         print("didFinishWithSuccess")
+//        NetworkLayer.forceLogoutAction?()
         do {
-            do {
-                let dict = try JSONSerialization.jsonObject(with: data, options: .mutableContainers) as AnyObject
-                print("\(urlResponse?.url) " + "\(dict)")
-            } catch let error as Error {
-                print("JSONSerialization" + "\(error)")
+            if let responseObject = try? JSONDecoder().decode(ErrorMetaData.self, from: data) {
+                // 200 but error in response
+                if let code = responseObject.code,
+                    let msg = responseObject.msg {
+                    if code == 401 || code == 501 { // logout
+                        // TODO: - handle custom error
+//                        delegate?.didExecuteWithError(NetworkResponseError.error(errorData: responseObject))
+                        return
+                    } else if code != 0 && code != 200 {
+                        completion(nil, nil, NetworkResponseError.error(errorData: responseObject))
+                        return
+                    }
+                }
+                completion(try JSONDecoder().decode(ResponseObject.self, from: data), urlResponse, nil)
             }
-            completion(try JSONDecoder().decode(ResponseObject.self, from: data), urlResponse, nil)
-        } catch let error {
-            print("parsingError" + "\(error)")
-            completion(nil, urlResponse, NetworkResponseError.parsingError(error: error))
+        } catch let error as Error {
+            print("JSONSerialization" + "\(error)")
+            completion(nil, nil, NetworkResponseError.parsingError(error: error))
         }
     }
 
     private func handleFailureResponse(with error: NetworkResponseError,
                                        with completion: @escaping (R?, URLResponse?, NetworkResponseError?) -> Void) {
-        delegate?.didFinishWithError()
+//        delegate?.didFinishWithError()
         print("didFinishWithError" + "\(error)")
         completion(nil, nil, error)
     }

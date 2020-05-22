@@ -8,6 +8,24 @@
 
 import Foundation
 
+extension NetworkResponseError: LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case let .parsingError(error),
+             let .requestFailed(error),
+             let .badRequest(error),
+             let .forbidden(error),
+             let .serverError(error),
+             let .redirected(error),
+             let .migration(error):
+            return error?.localizedDescription
+
+        case let .error(error):
+            return error.msg
+        }
+    }
+}
+
 public enum NetworkResponseError: Error {
     case error(errorData: ErrorMetaData)
     case parsingError(error: Error?)
@@ -35,7 +53,7 @@ public protocol ServiceResponseProtocol: Codable {
     func getServiceResponse() -> ServiceResponseCodable
 }
 
-public struct ErrorMetaData: Codable {
-    var startupTitle: String?
-    var startupMessage: String?
+public struct ErrorMetaData: ServiceResponseCodable {
+    public var code: Int?
+    public var msg: String?
 }

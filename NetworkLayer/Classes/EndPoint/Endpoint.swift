@@ -25,7 +25,7 @@ public enum HttpTask<T: Encodable> {
     case requestWithHeaders(headers: HttpHeaders?, queryParameters: Parameters?)
 }
 
-public protocol EndpointType: RouterCompletionDelegate {
+public protocol EndpointType {
     associatedtype ParameterType: Encodable
     var baseUrl: URL { get }
     var path: String { get }
@@ -37,13 +37,5 @@ public protocol EndpointType: RouterCompletionDelegate {
 public extension EndpointType {
     var headers: HttpHeaders? {
         return nil
-    }
-
-    func didFinishWithSuccess() {
-        // nada
-    }
-
-    func didFinishWithError() {
-        // nada
     }
 }
