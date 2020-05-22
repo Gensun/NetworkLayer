@@ -154,19 +154,22 @@ public class Router<E: EndpointType, R: Codable>: NetworkRouter {
 
     private func handleSuccessResponse(with data: Data, and urlResponse: URLResponse?,
                                        with completion: @escaping (R?, URLResponse?, NetworkResponseError?) -> Void) {
-        
-        print("didFinishWithSuccess")
-//        NetworkLayer.forceLogoutAction?()
+        NetworkLayer.didFinishWithSuccess?()
         do {
-            if let responseObject = try? JSONDecoder().decode(ErrorMetaData.self, from: data) {
+            if var responseObject = try? JSONDecoder().decode(ErrorMetaData.self, from: data) {
                 // 200 but error in response
-                if let code = responseObject.code,
-                    let msg = responseObject.msg {
+                if let code = responseObject.code {
                     if code == 401 || code == 501 { // logout
                         // TODO: - handle custom error
-//                        delegate?.didExecuteWithError(NetworkResponseError.error(errorData: responseObject))
+                        NetworkLayer.forceLogoutAction?()
                         return
                     } else if code != 0 && code != 200 {
+                        if (responseObject.msg?.isEmpty ?? false) || responseObject.msg == nil {
+                            print("responseObject.msg is nil")
+                            /// handle msg is nil , set friendly error
+                            responseObject.msg = "service error, try again later"
+                        }
+                        NetworkLayer.didExecuteWithError?(NetworkResponseError.error(errorData: responseObject))
                         completion(nil, nil, NetworkResponseError.error(errorData: responseObject))
                         return
                     }
@@ -181,7 +184,8 @@ public class Router<E: EndpointType, R: Codable>: NetworkRouter {
 
     private func handleFailureResponse(with error: NetworkResponseError,
                                        with completion: @escaping (R?, URLResponse?, NetworkResponseError?) -> Void) {
-//        delegate?.didFinishWithError()
+        NetworkLayer.didFinishWithError?(error)
+
         print("didFinishWithError" + "\(error)")
         completion(nil, nil, error)
     }
