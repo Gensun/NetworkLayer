@@ -22,7 +22,7 @@ it, simply add the following line to your Podfile:
 
 ## Author
 
-ep_chengsun@aliyun.com, suncheng@lookingedu.com
+ep_chengsun@aliyun.com
 
 ## License
 
