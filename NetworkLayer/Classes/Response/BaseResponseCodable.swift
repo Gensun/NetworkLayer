@@ -24,6 +24,16 @@ extension NetworkResponseError: LocalizedError {
             return error.msg
         }
     }
+
+    public var code: Int? {
+        switch self {
+        case let .error(error):
+            return error.code
+        default:
+            return nil
+            break
+        }
+    }
 }
 
 public enum NetworkResponseError: Error {

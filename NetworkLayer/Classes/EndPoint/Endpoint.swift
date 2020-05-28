@@ -19,9 +19,13 @@ public enum HttpMethod: String {
 
 public enum HttpTask<T: Encodable> {
     case request
-    // post
+    // post or get
     case requestWithParameters(bodyParameters: T?, queryParameters: Parameters?, pathParameters: [String]?)
     // get
+    case GET(queryParameters: Parameters?)
+    // post
+    case POST(bodyParameters: T?)
+    // get and can set header
     case requestWithHeaders(headers: HttpHeaders?, queryParameters: Parameters?)
 }
 
@@ -32,10 +36,19 @@ public protocol EndpointType {
     var httpMethod: HttpMethod { get }
     var task: HttpTask<ParameterType> { get }
     var headers: HttpHeaders? { get }
+    func loadCookies()
 }
 
 public extension EndpointType {
+    var httpMethod: HttpMethod {
+        return .post
+    }
+
     var headers: HttpHeaders? {
         return nil
+    }
+
+    func loadCookies(){
+        
     }
 }

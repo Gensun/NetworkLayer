@@ -50,10 +50,21 @@ public class Router<E: EndpointType, R: Codable>: NetworkRouter {
         @escaping (R?, URLResponse?, NetworkResponseError?) -> Void) {
         do {
             let request = try buildRequest(from: route)
+            if let method = request.httpMethod {
+                print("\n[NW]")
+                print(method + ": " + request.description + "\n")
+            }
+            if let body = request.httpBody {
+                print("[NW]")
+                print("Parameters\n\n" + body.description + "\n")
+            }
+            if let header = request.allHTTPHeaderFields {
+                print("[NW]")
+                print("HEADER: " + header.description + "\n")
+            }
             task = session.routerDataTask(with: request, completionHandler: { data, response, error in
                 // Check status code first
                 if error == nil, let urlResponse = response as? HTTPURLResponse, data != nil {
-                    print("\(urlResponse)")
                     // If request succeded and there is a responses
                     if let statusError = self.checkStatusCode(with: urlResponse, error: error) {
                         self.handleFailureResponse(with: statusError, with: completion)
@@ -75,10 +86,17 @@ public class Router<E: EndpointType, R: Codable>: NetworkRouter {
                                  cachePolicy: .reloadIgnoringLocalAndRemoteCacheData,
                                  timeoutInterval: timeoutInterval)
         request.httpMethod = route.httpMethod.rawValue
+        request.allHTTPHeaderFields = route.headers
+
         switch route.task {
         case .request: break
         case let .requestWithParameters(bodyParameters, urlParameters, pathParameters):
             do {
+                if request.httpMethod?.isEmpty ?? false {
+                    print("[NW]")
+                    print("need to set httpMethod")
+                    break
+                }
                 try configureParameters(with: bodyParameters,
                                         urlParameters: urlParameters,
                                         pathParameters: pathParameters,
@@ -86,8 +104,29 @@ public class Router<E: EndpointType, R: Codable>: NetworkRouter {
             } catch {
                 throw error
             }
+        case let .GET(queryParameters: queryParameters):
+            do {
+                request.httpMethod = HttpMethod.get.rawValue
+                try configureUrlParameters(with: queryParameters,
+                                           headers: nil,
+                                           pathParameters: nil,
+                                           and: &request)
+            } catch {
+                throw error
+            }
+        case let .POST(bodyParameters: bodyParameters):
+            do {
+                request.httpMethod = HttpMethod.post.rawValue
+                try configureParameters(with: bodyParameters,
+                                        urlParameters: nil,
+                                        pathParameters: nil,
+                                        and: &request)
+            } catch {
+                throw error
+            }
         case let .requestWithHeaders(headers: headers, queryParameters: queryParameters):
             do {
+                request.httpMethod = HttpMethod.get.rawValue
                 try configureUrlParameters(with: queryParameters,
                                            headers: headers,
                                            pathParameters: nil,
@@ -96,6 +135,7 @@ public class Router<E: EndpointType, R: Codable>: NetworkRouter {
                 throw error
             }
         }
+
         return request
     }
 
@@ -155,28 +195,31 @@ public class Router<E: EndpointType, R: Codable>: NetworkRouter {
     private func handleSuccessResponse(with data: Data, and urlResponse: URLResponse?,
                                        with completion: @escaping (R?, URLResponse?, NetworkResponseError?) -> Void) {
         NetworkLayer.didFinishWithSuccess?()
+        if let urlRes = urlResponse?.url {
+            print("\n[NW]")
+            print("\nReceived: " + urlRes.description)
+        }
+
         do {
             if var responseObject = try? JSONDecoder().decode(ErrorMetaData.self, from: data) {
                 // 200 but error in response
                 if let code = responseObject.code {
-                    if code == 401 || code == 501 { // logout
-                        // TODO: - handle custom error
-                        NetworkLayer.forceLogoutAction?()
-                        return
-                    } else if code != 0 && code != 200 {
-                        if (responseObject.msg?.isEmpty ?? false) || responseObject.msg == nil {
-                            print("responseObject.msg is nil")
-                            /// handle msg is nil , set friendly error
-                            responseObject.msg = "service error, try again later"
+                    if code == 0 || code == 200 {
+                        if var result = try? JSONDecoder().decode(ResponseObject.self, from: data) {
+                            print("[\nNW]")
+                            print("[S] Reponse: \n" + ((convertToDict(result)?.description) ?? ""))
+                            completion(result, urlResponse, nil)
                         }
+                    } else {
+                        print("\n[NW]\n")
+                        print("[S] Error Response: code = " + "\(code)" + "  msg = " + (responseObject.msg ?? "nil"))
                         NetworkLayer.didExecuteWithError?(NetworkResponseError.error(errorData: responseObject))
                         completion(nil, nil, NetworkResponseError.error(errorData: responseObject))
-                        return
                     }
                 }
-                completion(try JSONDecoder().decode(ResponseObject.self, from: data), urlResponse, nil)
             }
         } catch let error as Error {
+            print("[NW]")
             print("JSONSerialization" + "\(error)")
             completion(nil, nil, NetworkResponseError.parsingError(error: error))
         }
@@ -185,13 +228,24 @@ public class Router<E: EndpointType, R: Codable>: NetworkRouter {
     private func handleFailureResponse(with error: NetworkResponseError,
                                        with completion: @escaping (R?, URLResponse?, NetworkResponseError?) -> Void) {
         NetworkLayer.didFinishWithError?(error)
-
+        print("[NW]")
         print("didFinishWithError" + "\(error)")
         completion(nil, nil, error)
     }
 
     public func cancel() {
         task?.cancel()
+    }
+
+    open func convertToDict(_ res: ResponseObject) -> [String: Any]? {
+        do {
+            let encoder = JSONEncoder()
+            let data = try encoder.encode(res)
+            return try JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any]
+        } catch {
+            print(error)
+        }
+        return [:]
     }
 }
 
