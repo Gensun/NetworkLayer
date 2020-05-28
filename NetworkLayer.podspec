@@ -31,7 +31,8 @@ TODO: Add long description of the pod here.
   s.ios.deployment_target = '8.0'
 
   s.source_files = 'NetworkLayer/Classes/**/*'
-  
+  s.swift_version = "5.0"
+
   # s.resource_bundles = {
   #   'NetworkLayer' => ['NetworkLayer/Assets/*.png']
   # }
