@@ -17,12 +17,12 @@ NetworkLayer is available through [CocoaPods](https://cocoapods.org). To install
 it, simply add the following line to your Podfile:
 
 ```ruby
-pod 'NetworkLayer'
+    pod 'NetworkLayer', :git => 'https://github.com/Gensun/NetworkLayer'
 ```
 
 ## Author
 
-ep_chengsun@aliyun.com, suncheng@lookingedu.com
+ep_chengsun@aliyun.com
 
 ## License
 
