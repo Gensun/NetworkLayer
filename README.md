@@ -24,6 +24,10 @@ it, simply add the following line to your Podfile:
 
 ep_chengsun@aliyun.com
 
+## Stargazers over time
+
+[![Stargazers over time](https://starchart.cc/Gensun/NetworkLayer.svg)](https://starchart.cc/Gensun/NetworkLayer)
+
 ## License
 
 NetworkLayer is available under the MIT license. See the LICENSE file for more info.
